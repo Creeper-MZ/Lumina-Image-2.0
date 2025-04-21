@@ -29,6 +29,7 @@
 
 
 ## 📰 News
+- [2025-4-21] 🚀🚀🚀 We have released [Lumina-Accessory](https://github.com/Alpha-VLLM/Lumina-Accessory), which supports single-task and multi-task fine-tuning for controllable generation, image editing, and identity preservation based on Lumina-Image 2.0.
 - [2025-3-28] 👋👋👋 We are excited to announce the release of the Lumina-Image 2.0 [Tech Report](https://arxiv.org/abs/2503.21758). We welcome discussions and feedback! 
 - [2025-2-20] Diffusers team released a LoRA fine-tuning script for Lumina2. Find out more [here](https://github.com/huggingface/diffusers/blob/main/examples/dreambooth/README_lumina2.md).
 - [2025-2-12] Lumina 2.0 is now available in Diffusers. Check out the [docs](https://huggingface.co/docs/diffusers/main/en/api/pipelines/lumina2) to know more.
