@@ -10,7 +10,7 @@
 <div align="center">
 
 [![Lumina-Next](https://img.shields.io/badge/Paper-Lumina--Image--2.0-2b9348.svg?logo=arXiv)](https://arxiv.org/abs/2503.21758)&#160;
-[![Badge](https://img.shields.io/badge/-WeChat@Join%20Our%20Group-000000?logo=wechat&logoColor=07C160)](http://47.100.29.251:11001/)&#160;
+[![Badge](https://img.shields.io/badge/-WeChat@Join%20Our%20Group-000000?logo=wechat&logoColor=07C160)](https://github.com/ChinChyi/ipictures/blob/main/20250421.jpg?raw=true)&#160;
 
 [![Static Badge](https://img.shields.io/badge/Lumina--Image--2.0%20checkpoints-Model(2B)-yellow?logoColor=violet&label=%F0%9F%A4%97%20Lumina-Image-2.0%20checkpoints)](https://huggingface.co/Alpha-VLLM/Lumina-Image-2.0)
 [![Static Badge](https://img.shields.io/badge/Lumina--Image--2.0-HF_Space-yellow?logoColor=violet&label=%F0%9F%A4%97%20Demo%20Lumina-Image-2.0)](https://huggingface.co/spaces/Alpha-VLLM/Lumina-Image-2.0)
