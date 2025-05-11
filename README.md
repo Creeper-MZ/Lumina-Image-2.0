@@ -53,8 +53,8 @@
  - [x] Diffusers
  - [x] LoRA
  - [x] Technical Report
- - [ ] Unified multi-image generation
- - [ ] Control
+ - [x] Unified multi-image generation
+ - [x] Control
  - [ ] PEFT (LLaMa-Adapter V2)
 
 ## 🎥 Demo
