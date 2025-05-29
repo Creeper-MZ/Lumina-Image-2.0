@@ -80,20 +80,20 @@ def model_main(args, master_port, rank, request_queue, response_queue, mp_barrie
     os.environ["WORLD_SIZE"] = str(args.num_gpus)
 
 
-    train_args = torch.load(os.path.join(args.ckpt, "model_args.pth"))
+    train_args = torch.load(os.path.join(args.ckpt, "model_args.pth"),weights_only=False)
     print("Loaded model arguments:", json.dumps(train_args.__dict__, indent=2))
-    print(f"Creating lm: Gemma-2-2B")
+    print(f"Creating lm: Gemma-3-4B")
 
     dtype = {"bf16": torch.bfloat16, "fp16": torch.float16, "fp32": torch.float32}[args.precision]
 
     text_encoder = AutoModel.from_pretrained(
-        "google/gemma-2-2b", torch_dtype=dtype, device_map="cuda", token=args.hf_token
-    ).eval()
-    cap_feat_dim = text_encoder.config.hidden_size
+        "google/gemma-3-4b-it", torch_dtype=dtype, token=args.hf_token
+    ).to("cuda:0").eval()
+    cap_feat_dim = text_encoder.config.text_config.hidden_size
     if args.num_gpus > 1:
         raise NotImplementedError("Inference with >1 GPUs not yet supported")
 
-    tokenizer = AutoTokenizer.from_pretrained("google/gemma-2-2b", token=args.hf_token)
+    tokenizer = AutoTokenizer.from_pretrained("google/gemma-3-4b-it", token=args.hf_token)
     tokenizer.padding_side = "right"
 
     vae = AutoencoderKL.from_pretrained("black-forest-labs/FLUX.1-dev", subfolder="vae", token=args.hf_token).cuda()
@@ -174,13 +174,13 @@ def model_main(args, master_port, rank, request_queue, response_queue, mp_barrie
                 # begin sampler
                 if solver == "dpm":
                     transport = create_transport(
-                    "Linear",
-                    "velocity",
+                        "Linear",
+                        "velocity",
                     )
                     sampler = Sampler(transport)
                     sample_fn = sampler.sample_dpm(
-                    model.forward_with_cfg,
-                    model_kwargs=model_kwargs,
+                        model.forward_with_cfg,
+                        model_kwargs=model_kwargs,
                     )
                 else:
                     transport = create_transport(
@@ -198,8 +198,8 @@ def model_main(args, master_port, rank, request_queue, response_queue, mp_barrie
                         rtol=args.rtol,
                         reverse=args.reverse,
                         time_shifting_factor=t_shift,
-                    )  
-                # end sampler
+                    )
+                    # end sampler
 
                 resolution = resolution.split(" ")[-1]
                 w, h = resolution.split("x")
@@ -338,12 +338,12 @@ def main():
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--num_gpus", type=int, default=1)
-    parser.add_argument("--ckpt", type=str,default='', required=False)
+    parser.add_argument("--ckpt", type=str,default='/home/ps/stablediffusion/Lumina-Image-2.0/results/NextDiT_2B_GQA_patch2_Adaln_Refiner_bs4_lr2e-4_bf16/checkpoints/0006000/', required=False)
     parser.add_argument("--ema", action="store_true")
     parser.add_argument("--precision", default="bf16", choices=["bf16", "fp32"])
     parser.add_argument("--hf_token", type=str, default=None, help="huggingface read token for accessing gated repo.")
     parser.add_argument("--res", type=int, default=1024, choices=[256, 512, 1024])
-    parser.add_argument("--port", type=int, default=100023)
+    parser.add_argument("--port", type=int, default=10002)
 
     parse_transport_args(parser)
     parse_ode_args(parser)
@@ -375,7 +375,7 @@ def main():
         processes.append(p)
 
     description = args.ckpt.split('/')[-1]
-   
+
     with gr.Blocks() as demo:
         with gr.Row():
             gr.Markdown(description)
@@ -398,8 +398,8 @@ def main():
                 default_value = "You are an assistant designed to generate superior images with the superior degree of image-text alignment based on textual prompts or user prompts."
                 system_type = gr.Dropdown(
                     value=default_value,
-                    choices=[  
-                       "You are an assistant designed to generate high-quality images with the highest degree of image-text alignment based on textual prompts.",
+                    choices=[
+                        "You are an assistant designed to generate high-quality images with the highest degree of image-text alignment based on textual prompts.",
                         "",
                     ],
                     label="System Type",
@@ -407,7 +407,7 @@ def main():
                 with gr.Row():
                     res_choices = [f"{w}x{h}" for w, h in generate_crop_size_list((args.res // 64) ** 2, 64)]
                     default_value = "1024x1024"  # Set the default value to 256x256
-                    
+
                     resolution = gr.Dropdown(
                         value=default_value, choices=res_choices, label="Resolution"
                     )
@@ -458,7 +458,7 @@ def main():
                         label="CFG scale",
                     )
                 with gr.Row():
-                     renorm_cfg = gr.Dropdown(
+                    renorm_cfg = gr.Dropdown(
                         value="True",
                         choices=["True", "False", "2.0"],
                         label="CFG Renorm",
@@ -495,9 +495,9 @@ def main():
 
         with gr.Row():
             prompts=[ "Close-up portrait of a young woman with light brown hair, looking to the right, illuminated by warm, golden sunlight. Her hair is gently tousled, catching the light and creating a halo effect around her head. She wears a white garment with a V-neck, visible in the lower left of the frame. The background is dark and out of focus, enhancing the contrast between her illuminated face and the shadows. Soft, ethereal lighting, high contrast, warm color palette, shallow depth of field, natural backlighting, serene and contemplative mood, cinematic quality, intimate and visually striking composition.",
-                     "一个剑客，武侠风，红色腰带，戴着斗笠，低头，盖住眼睛，白色背景，细致，精品，杰作，水墨画，墨烟，墨云，泼墨，色带，墨水，墨黑白莲花，光影艺术，笔触。",
-                     "Aesthetic photograph of a bouquet of pink and white ranunculus flowers in a clear glass vase, centrally positioned on a wooden surface. The flowers are in full bloom, displaying intricate layers of petals with a soft gradient from pale pink to white. The vase is filled with water, visible through the clear glass, and the stems are submerged. In the background, a blurred vase with green stems is partially visible, adding depth to the composition. The lighting is warm and natural, casting soft shadows and highlighting the delicate textures of the petals. The scene is serene and intimate, with a focus on the organic beauty of the flowers. Photorealistic, shallow depth of field, soft natural lighting, warm color palette, high contrast, glossy texture, tranquil, visually balanced."
-                ]
+                      "一个剑客，武侠风，红色腰带，戴着斗笠，低头，盖住眼睛，白色背景，细致，精品，杰作，水墨画，墨烟，墨云，泼墨，色带，墨水，墨黑白莲花，光影艺术，笔触。",
+                      "Aesthetic photograph of a bouquet of pink and white ranunculus flowers in a clear glass vase, centrally positioned on a wooden surface. The flowers are in full bloom, displaying intricate layers of petals with a soft gradient from pale pink to white. The vase is filled with water, visible through the clear glass, and the stems are submerged. In the background, a blurred vase with green stems is partially visible, adding depth to the composition. The lighting is warm and natural, casting soft shadows and highlighting the delicate textures of the petals. The scene is serene and intimate, with a focus on the organic beauty of the flowers. Photorealistic, shallow depth of field, soft natural lighting, warm color palette, high contrast, glossy texture, tranquil, visually balanced."
+                      ]
             prompts = [[_] for _ in prompts]
             gr.Examples(  # noqa
                 prompts,
@@ -543,8 +543,8 @@ def main():
 
     mp_barrier.wait()
     demo.queue().launch(share=True,
-        server_name="0.0.0.0", server_port=args.port
-    )
+                        server_name="0.0.0.0", server_port=args.port
+                        )
 
 
 if __name__ == "__main__":
