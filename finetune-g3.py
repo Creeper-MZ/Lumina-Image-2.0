@@ -82,7 +82,7 @@ class T2IItemProcessor(ItemProcessor):
             system_prompt = "You are an assistant designed to generate high-quality images based on user prompts. <Prompt Start> "  # noqa
         else:
             raise ValueError(f"Unrecognized item: {data_item}")
-
+            
         if image.mode.upper() != "RGB":
             mode = image.mode.upper()
             if mode not in self.special_format_set:
@@ -94,7 +94,7 @@ class T2IItemProcessor(ItemProcessor):
                 image = image.convert("RGB")
             else:
                 raise NonRGBError()
-
+            
         image = self.image_transform(image)
 
         if text is None or text.strip() == "":
@@ -454,7 +454,7 @@ def main(args):
         )
 
     logger.info(f"model:\n{model}\n")
-
+    
     vae = AutoencoderKL.from_pretrained("black-forest-labs/FLUX.1-dev", subfolder="vae", torch_dtype=torch.bfloat16).to(
         device
     )
@@ -730,9 +730,9 @@ def main(args):
             os.makedirs(checkpoint_path, exist_ok=True)
 
             with FSDP.state_dict_type(
-                    model,
-                    StateDictType.FULL_STATE_DICT,
-                    FullStateDictConfig(rank0_only=True, offload_to_cpu=True),
+                model,
+                StateDictType.FULL_STATE_DICT,
+                FullStateDictConfig(rank0_only=True, offload_to_cpu=True),
             ):
                 consolidated_model_state_dict = model.state_dict()
                 if fs_init.get_data_parallel_rank() == 0:
@@ -751,9 +751,9 @@ def main(args):
             logger.info(f"Saved consolidated to {checkpoint_path}.")
 
             with FSDP.state_dict_type(
-                    model_ema,
-                    StateDictType.FULL_STATE_DICT,
-                    FullStateDictConfig(rank0_only=True, offload_to_cpu=True),
+                model_ema,
+                StateDictType.FULL_STATE_DICT,
+                FullStateDictConfig(rank0_only=True, offload_to_cpu=True),
             ):
                 consolidated_ema_state_dict = model_ema.state_dict()
                 if fs_init.get_data_parallel_rank() == 0:
@@ -772,8 +772,8 @@ def main(args):
             logger.info(f"Saved consolidated_ema to {checkpoint_path}.")
 
             with FSDP.state_dict_type(
-                    model,
-                    StateDictType.LOCAL_STATE_DICT,
+                model,
+                StateDictType.LOCAL_STATE_DICT,
             ):
                 opt_state_fn = f"optimizer.{dist.get_rank():05d}-of-" f"{dist.get_world_size():05d}.pth"
                 torch.save(opt.state_dict(), os.path.join(checkpoint_path, opt_state_fn))
@@ -827,8 +827,8 @@ if __name__ == "__main__":
         "--init_from",
         type=str,
         help="Initialize the model weights from a checkpoint folder. "
-             "Compared to --resume, this loads neither the optimizer states "
-             "nor the data loader states.",
+        "Compared to --resume, this loads neither the optimizer states "
+        "nor the data loader states.",
     )
     parser.add_argument(
         "--grad_clip", type=float, default=2.0, help="Clip the L2 norm of the gradients to the given value."

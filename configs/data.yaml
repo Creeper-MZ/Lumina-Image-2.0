@@ -1,4 +1,4 @@
 META:
   -
-    path: '/your/path/to/data.jsonl'
+    path: '/home/ps/pycharm/training_data.json'
     type: 'image_text'
